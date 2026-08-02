@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Predict{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3>
+                        <i class="fa-solid fa-flask text-success"></i>
+                        Crop Recommendation
+                    </h3>
+
+                    <div class="text-muted small d-none d-md-block">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Enter numerical values (Humidity: 0–100, pH: 0–14)
+                    </div>
+                </div>
+
+                <hr>
+
+                <form method="post" id="predictForm">
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        {% for c in feature_order %}
+                        <div class="col-md-4">
+
+                            <label for="{{ c }}" class="form-label">
+                                {{ c|capfirst }}
+                            </label>
+
+                            {% if c == "humidity" %}
+                                <input
+                                    type="number"
+                                    step="any"
+                                    min="0"
+                                    max="100"
+                                    class="form-control"
+                                    id="{{ c }}"
+                                    name="{{ c }}"
+                                    required
+                                    placeholder="e.g. 80">
+
+                            {% elif c == "ph" %}
+                                <input
+                                    type="number"
+                                    step="any"
+                                    min="0"
+                                    max="14"
+                                    class="form-control"
+                                    id="{{ c }}"
+                                    name="{{ c }}"
+                                    required
+                                    placeholder="e.g. 6.5">
+
+                            {% else %}
+                                <input
+                                    type="number"
+                                    step="any"
+                                    class="form-control"
+                                    id="{{ c }}"
+                                    name="{{ c }}"
+                                    required
+                                    placeholder="e.g. 90">
+                            {% endif %}
+
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            Predict
+                        </button>
+
+                        <button type="button" class="btn btn-outline-secondary" id="btnSample">
+                            <i class="fa-solid fa-bolt"></i>
+                            Use Sample
+                        </button>
+
+                        <button type="reset" class="btn btn-outline-danger">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            Reset
+                        </button>
+                    </div>
+
+                </form>
+
+                {% if result %}
+                <hr>
+
+                <div class="alert alert-success d-flex align-items-start mt-3" role="alert">
+
+                    <i class="fa-solid fa-circle-check me-2 fs-4"></i>
+
+                    <div>
+                        <strong>Recommended Crop:</strong>
+                        <span class="text-capitalize">{{ result }}</span>
+
+                        {% if last_data %}
+                        <div class="small text-muted mt-2">
+                            <i class="fa-regular fa-clock"></i>
+                            <strong>Input Used:</strong><br>
+
+                            {% for k, v in last_data.items %}
+                                <code>{{ k }} = {{ v }}</code>{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="mb-2"><i class="fa-solid fa-lightbulb"></i>Tips</h5>
+                <ul class="small text-muted mb-0">
+                <li> Use realistics local values for temperature,humidity & rainfall.</li>
+                <li> Soil pH valid range 0-14 (most crops prefer ~6-7).</li>
+                <li> The entered pH value cannot be negative..</li>
+                <li> A pH value greater than 14 is invalid.</li>
+                <li> Most agricultural crops grow best in soil with a pH between 6.0 and 7.0.</li>
+                <li> A pH below 5.5 indicates strongly acidic soil, which may reduce crop yield.</li>
+                <li> A pH above 8.0 indicates alkaline soil, which can limit nutrient availability.</li>
+                <li> Save multiple predictions and compare in your History</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+    <div class="card shadow-sm border-0 mt-3">
+        <div class="card-body">
+            <h6 class="mb-2"><i class="fa-solid fa-circle-question"></i>What is N-P-K</h6>
+            <p class="small text-muted mb-0">
+                N (Nitrogen), P (Phosphorus), K (Potassium) -key soil nutrients affecting crop growth.
+            </p>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+(function () {
+
+    const form = document.getElementById("predictForm");
+    const inputs = form ? form.querySelectorAll("input[name]") : [];
+
+    const sample = {
+        N: 90,
+        P: 42,
+        K: 43,
+        temperature: 20.5,
+        humidity: 80,
+        ph: 6.5,
+        rainfall: 200
+    };
+
+    document.getElementById("btnSample")?.addEventListener("click", function () {
+
+        inputs.forEach(function (input) {
+            if (sample[input.name] !== undefined) {
+                input.value = sample[input.name];
+            }
+        });
+
+        Swal.fire({
+            icon: "info",
+            title: "Sample Data Loaded",
+            text: "Sample values have been filled into the form.",
+            confirmButtonColor: "#198754"
+        });
+
+    });
+
+})();
+</script>
+
+{% endblock %}

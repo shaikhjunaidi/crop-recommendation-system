@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+<title>{% block title %} Admin Login {% endblock %}</title>
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-lg-11">
+            <div class="card shadow-lg border-0 overflow-hidden">
+                <div class="row">
+                    <div class="col-md-6 position-relative" style="background-image: url('/static/images/carousel1.png');">
+                        <div class="position-absolute start-0 top-0 w-100 h-100"
+                        style="background: linear-gradient(180deg,rgba(0,0,0,0.35),rgba(0,0,0,0.5));">
+
+                        </div>
+                        <div class="position-absolute bottom-0 text-white start-0 p-4">
+                            <h4 class="fw-bold mb-2">Crop Recommender</h4>
+                            <p class="mb-3 text-white-70">Predicts crops, save history,export csv-all in Dashboard</p>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-1"><i class="fa-solid fa-circle-check me-2"></i>Secure & Private</li>
+                                <li class="mb-1"><i class="fa-solid fa-circle-check me-2"></i>Fast ML Predictions</li>
+                                <li class="mb-1"><i class="fa-solid fa-circle-check me-2"></i>Modern Responsive UI</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6 bg-white">
+                        <div class="p-5">
+                            <h3 class="mb-3"><i class="fa-solid fa-user-plus"></i>Admin Login</h3>
+                            <form method="post" id="loginForm">
+                                {% csrf_token%}
+                                <div class="row g-3">
+
+                                    <div class="col-md-12">
+                                        <label class="form-label">UserName</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+                                            <input type="text" name="username" class="form-control" placeholder="Enter the username" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label">Password <span class="text-muted small">(min 6 characters)</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+                                            <input type="password" name="password" id="pwd1" class="form-control" placeholder="********" required>
+                                            <button class="btn btn-outline-secondary" type="button" id="togglepwd1" title="show/Hide">
+                                                <i class="fa-regular fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>   
+                                    
+                                    
+                                </div>
+                                <button class="btn btn-success mt-3 w-100" type="submit" >
+                                    <span>Login</span>
+                                </button>
+                                <div class="text-center mt-3">
+                                   
+                                    <a href="{% url 'home' %}" class="text-decoration-none ms-1"><i class="fa-solid fa-house"></i> Back To Site</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function togglePassword(inputId, btnId){
+
+    const input=document.getElementById(inputId);
+    const btn=document.querySelector("#"+btnId+" i");
+
+    if(input.type==="password"){
+        input.type="text";
+        btn.classList.replace("fa-eye","fa-eye-slash");
+    }else{
+        input.type="password";
+        btn.classList.replace("fa-eye-slash","fa-eye");
+    }
+
+}
+    </script>
+{% endblock %}

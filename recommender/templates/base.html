@@ -1,0 +1,195 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="ML-powered Crop Recommendation System to help farmers predict the best crops for their soil." />
+    <meta name="keywords" content="agriculture, machine learning, crop prediction, farming" />
+    <title>{% block title %} Crop Recommender {% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body class="d-flex flex-column min-vh-100">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="#"
+          ><i class="fa-solid fa-wheat-awn"></i>Crop Recommender</a
+        >
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            {% if user.is_authenticated and not user.is_staff %}
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'predict' %}"
+                ><i class="fa-solid fa-flask"></i>Predict</a
+              >
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'user_history' %}"
+                ><i class="fa-solid fa-clock-rotate-left"></i>History</a
+              >
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'profile' %}"
+                ><i class="fa-solid fa-user"></i>Profile</a
+              >
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'change_password' %}"
+                ><i class="fa-solid fa-key"></i>Change Passoword</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'logout' %}"
+                ><i class="fa-solid fa-right-from-bracket"></i>Logout</a
+              >
+            </li>
+            {% elif user.is_authenticated and user.is_staff %}
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'admin_dashboard' %}"
+                ><i class="fa-solid fa-gauge"></i>Dashboard</a
+              >
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'admin_predictions' %}"
+                ><i class="fa-solid fa-table"></i>Predictions</a
+              >
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'admin_view_users'%}"
+                ><i class="fa-solid fa-users"></i>Users</a
+              >
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'admin_change' %}"
+                ><i class="fa-solid fa-key"></i>Change Passoword</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'admin_logout' %}"
+                ><i class="fa-solid fa-right-from-bracket"></i>Logout</a
+              >
+            </li>
+
+            {% else %}
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'home' %}"
+                ><i class="fa-solid fa-home"></i>Home</a
+              >
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'login' %}"
+                ><i class="fa-solid fa-right-to-bracket"></i>Login</a
+              >
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'signup'%}"
+                ><i class="fa-solid fa-user-plus"></i>SignUp</a
+              >
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'admin_login' %}"
+                ><i class="fa-solid fa-lock"></i>Admin</a
+              >
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <main class="container py-4 flex-grow-1">{% block content %} {% endblock %}</main>
+
+    <footer class="bg-dark text-white py-4 mt-auto">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6 mb-3 mb-md-0">
+            <h5 class="fw-bold"><i class="fa-solid fa-wheat-awn text-success"></i> Crop Recommender</h5>
+            <p class="text-white-50 small">Empowering farmers with machine learning to predict the best crops based on soil and weather parameters.</p>
+          </div>
+          <div class="col-md-3 mb-3 mb-md-0">
+            <h5 class="fw-bold">Quick Links</h5>
+            <ul class="list-unstyled small">
+              <li><a href="{% url 'home' %}" class="text-white-50 text-decoration-none">Home</a></li>
+              <li><a href="{% url 'predict' %}" class="text-white-50 text-decoration-none">Predict</a></li>
+              {% if not user.is_authenticated %}
+              <li><a href="{% url 'login' %}" class="text-white-50 text-decoration-none">Login</a></li>
+              <li><a href="{% url 'signup' %}" class="text-white-50 text-decoration-none">Sign Up</a></li>
+              {% endif %}
+            </ul>
+          </div>
+          <div class="col-md-3">
+            <h5 class="fw-bold">Connect</h5>
+            <div class="d-flex gap-3">
+              <a href="#" class="text-white-50 text-decoration-none fs-5"><i class="fa-brands fa-github"></i></a>
+              <a href="https://www.linkedin.com/in/shaikh-junaid-a794a4405/" class="text-white-50 text-decoration-none fs-5" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+              <a href="mailto:me.junaid.in@gmail.com" class="text-white-50 text-decoration-none fs-5"><i class="fa-solid fa-envelope"></i></a>
+            </div>
+          </div>
+        </div>
+        <hr class="border-secondary">
+        <div class="d-flex justify-content-between align-items-center small text-white-50">
+          <div>&copy; 2026 Crop Recommender. All rights reserved.</div>
+          <div>
+            <a href="#" class="text-white-50 text-decoration-none me-3">Privacy Policy</a>
+            <a href="#" class="text-white-50 text-decoration-none">Terms of Service</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   {% if messages %}
+<script>
+{% for m in messages %}
+Swal.fire({
+    icon: "{{ m.tags|default:'info' }}",
+    title: "{{ m }}",
+});
+{% endfor %}
+</script>
+{% endif %}
+  </body>
+</html>
