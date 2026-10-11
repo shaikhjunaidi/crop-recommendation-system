@@ -6,7 +6,7 @@ from django.conf import settings
 
 @lru_cache(maxsize=1)
 def load_bundle():
-    pkl_path = os.path.join(settings.BASE_DIR, "recommender/ml/Crop_recommendation_RF.pkl")
+    pkl_path = getattr(settings, "CROP_MODEL_PATH", None) or os.environ.get("CROP_MODEL_PATH") or os.path.join(settings.BASE_DIR, "recommender/ml/Crop_recommendation_RF.pkl")
     with open(pkl_path, "rb") as f:
         bundle = pickle.load(f)
     assert "model" in bundle and "feature_cols" in bundle, "Pickle file must contain 'model' and 'feature_cols'"

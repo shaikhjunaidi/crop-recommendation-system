@@ -32,7 +32,7 @@ def signup_view(request):
         phone = request.POST.get("phone")
         email = request.POST.get("email")
         password = request.POST.get("password")
-        
+
         if not name or not phone or not email or not password:
             messages.error(request, "Please fill in all fields.")
             return redirect("signup")
@@ -42,28 +42,31 @@ def signup_view(request):
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already exists.")
             return redirect("signup")
-            
+
         with transaction.atomic():
-            user = User.objects.create_user(username=email, email=email, password=password, first_name=name)
             if " " in name:
                 first_name, last_name = name.split(" ", 1)
             else:
                 first_name = name
                 last_name = ""
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-            UserProfile.objects.create(user=user, phone=phone)   
-            
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+            UserProfile.objects.create(user=user, phone=phone)
+
         login(request, user)
         messages.success(request, "Account created successfully. Welcome!")
-        return redirect("predict") 
-        
+        return redirect("predict")
+
     return render(request, "signup.html")
 
 @login_required
 def predict_view(request):
-    feature_order = load_bundle()["feature_cols"]
+    feature_order = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
     result = None
     last_data = None
     if request.method == "POST":
@@ -76,9 +79,14 @@ def predict_view(request):
                 data[c] = float(val)
         except (ValueError, TypeError):
             messages.error(request, "Invalid input. Please enter valid numeric values.")
-            return redirect("predict")    
-            
-        label = predict_one(data)
+            return redirect("predict")
+
+        try:
+            label = predict_one(data)
+        except Exception as e:
+            messages.error(request, "Unable to perform prediction: Model is unavailable or corrupt.")
+            return redirect("predict")
+
         Prediction.objects.create(user=request.user, **data, predicted_label=label)
         result = label
         last_data = data
@@ -101,7 +109,7 @@ def login_view(request):
         username = request.POST.get("email")
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
-        
+
         if not user:
             messages.error(request, "Invalid email or password.")
             return redirect("login")
@@ -136,7 +144,7 @@ def profile_view(request):
         profile.phone = phone
         request.user.save()
         profile.save()
-        messages.success(request, "Updated Successfully.")    
+        messages.success(request, "Updated Successfully.")
 
     context = {
         'profile': profile,
@@ -150,28 +158,26 @@ def change_password_view(request):
         current = request.POST.get("current_password")
         new = request.POST.get("new_password")
         confirm = request.POST.get("confirm_new_password")
-        
+
         if not request.user.check_password(current):
             messages.error(request, "Current Password is Invalid.")
             return redirect("change_password")
-        
+
         if len(new) < 6:
             messages.error(request, "New Password Must Be At Least 6 Characters.")
             return redirect("change_password")
-        
+
         if new != confirm:
             messages.error(request, "New Passwords Do Not Match.")
             return redirect("change_password")
-           
+
         request.user.set_password(new)
         request.user.save()
-        user = authenticate(request, username=request.user.username, password=new)
-                
-        if user:
-            login(request, user)
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(request, request.user)
         messages.success(request, "Password Changed successfully.")
-        return redirect("change_password")  
-        
+        return redirect("change_password")
+
     return render(request, "change_password.html")
 
 def admin_login_view(request):
@@ -179,11 +185,11 @@ def admin_login_view(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
-        
+
         if not user:
             messages.error(request, "Invalid email or password.")
             return redirect("admin_login")
-        
+
         if not user.is_staff:
             messages.error(request, "Access denied. Staff only.")
             return redirect("admin_login")
@@ -209,16 +215,16 @@ def admin_dashboard_view(request):
 
     today = timezone.localdate()
     start_date = today - timedelta(days=6)
-    
+
     # Optimize day counts query
     daily_predictions = (
         Prediction.objects.filter(created_at__date__gte=start_date)
         .values("created_at__date")
         .annotate(count=Count("id"))
     )
-    
+
     predictions_by_date = {dp['created_at__date']: dp['count'] for dp in daily_predictions}
-    
+
     days = [start_date + timedelta(days=i) for i in range(7)]
     day_labels = [d.strftime("%d %b") for d in days]
     day_counts = [predictions_by_date.get(d, 0) for d in days]
@@ -236,7 +242,7 @@ def admin_dashboard_view(request):
 
 @user_passes_test(is_staff, login_url='admin_login')
 def admin_user_view(request):
-    users = User.objects.filter(is_staff=False)
+    users = User.objects.filter(is_staff=False).select_related('userprofile')
     return render(request, "admin_view_users.html", {"users": users})
 
 @user_passes_test(is_staff, login_url='admin_login')
@@ -246,7 +252,7 @@ def admin_user_delete(request, id):
     if user.is_staff or user.is_superuser:
         messages.error(request, "Cannot delete staff or superuser accounts.")
         return redirect("admin_view_users")
-        
+
     user.delete()
     messages.success(request, "User deleted successfully.")
     return redirect("admin_view_users")
@@ -304,25 +310,23 @@ def admin_change_password_view(request):
         current = request.POST.get("current_password")
         new = request.POST.get("new_password")
         confirm = request.POST.get("confirm_new_password")
-        
+
         if not request.user.check_password(current):
             messages.error(request, "Current Password is Invalid.")
             return redirect("admin_change")
-        
+
         if len(new) < 6:
             messages.error(request, "New Password Must Be At Least 6 Characters.")
             return redirect("admin_change")
-        
+
         if new != confirm:
             messages.error(request, "New Passwords Do Not Match.")
             return redirect("admin_change")
-           
+
         request.user.set_password(new)
         request.user.save()
-        user = authenticate(request, username=request.user.username, password=new)
-                
-        if user:
-            login(request, user)
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(request, request.user)
         messages.success(request, "Password Changed successfully.")
-        return redirect("admin_change")  
+        return redirect("admin_change")
     return render(request, "admin_change.html")
